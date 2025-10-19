@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -39,13 +39,18 @@ export default function Onboarding() {
     }));
   };
 
-  // Handle Enter key press
-  const handleKeyPress = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter') {
-      e.preventDefault();
-      handleNext();
-    }
-  };
+  // Handle Enter key press globally
+  useEffect(() => {
+    const handleKeyPress = (e: KeyboardEvent) => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        handleNext();
+      }
+    };
+    
+    document.addEventListener('keypress', handleKeyPress);
+    return () => document.removeEventListener('keypress', handleKeyPress);
+  }, [step, formData]); // Re-attach when step or formData changes
 
   const handleNext = () => {
     if (step === 1 && !formData.userName) {
@@ -74,7 +79,7 @@ export default function Onboarding() {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-purple-50 p-4">
-      <Card className="w-full max-w-2xl animate-fade-in" onKeyPress={handleKeyPress} tabIndex={0}>
+      <Card className="w-full max-w-2xl animate-fade-in">
         <CardHeader>
           <div className="flex items-center gap-4 mb-4">
             <img src="/assets/images/mascot_cat.png" alt="Mascot" className="w-16 h-16" />
@@ -84,7 +89,7 @@ export default function Onboarding() {
             </div>
           </div>
         </CardHeader>
-        <CardContent className="space-y-6" onKeyPress={handleKeyPress}>
+        <CardContent className="space-y-6">
           {step === 1 && (
             <div className="space-y-4">
               <Label htmlFor="name">What is your name?</Label>
@@ -93,7 +98,6 @@ export default function Onboarding() {
                 placeholder="Enter your name"
                 value={formData.userName}
                 onChange={(e) => setFormData(prev => ({ ...prev, userName: e.target.value }))}
-                onKeyPress={handleKeyPress}
                 autoFocus
               />
             </div>
