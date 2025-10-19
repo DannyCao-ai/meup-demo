@@ -18,7 +18,7 @@ export const FAVORITE_TOPICS = [
 
 export const AVAILABLE_SKILLS = ["Active Listening", "Memory"] as const;
 
-export type ExerciseType = "single_choice" | "multiple_choice" | "drag_drop" | "text_gap" | "cues_placement" | "arrange_sequence" | "record";
+export type ExerciseType = "single_choice" | "multiple_choice" | "drag_drop" | "text_gap_filling" | "cues_placement" | "arrange_sequence" | "record";
 
 export interface Exercise {
   id: string;
@@ -32,6 +32,7 @@ export interface Exercise {
 export interface Keypoint {
   id: string;
   title: string;
+  description?: string;
   theory: string;
   exercises: Exercise[];
 }
@@ -39,6 +40,7 @@ export interface Keypoint {
 export interface Lesson {
   id: string;
   title: string;
+  description?: string;
   keypoints: Keypoint[];
 }
 
@@ -529,3 +531,17 @@ export const ASSESSMENT_DIMENSIONS = {
   ]
 };
 
+
+// Combined skills data for easy access
+export const SKILLS = [
+  {
+    name: "Active Listening",
+    description: "Master the art of truly hearing and understanding others",
+    lessons: ACTIVE_LISTENING_LESSONS
+  },
+  {
+    name: "Memory",
+    description: "Enhance your ability to remember and recall information",
+    lessons: MEMORY_LESSONS
+  }
+];
