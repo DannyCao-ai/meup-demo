@@ -11,6 +11,7 @@ import { trpc } from "@/lib/trpc";
 import { ROLE_PLAYS } from "@shared/content";
 import { toast } from "sonner";
 import { PlayCircle, PauseCircle, Volume2 } from "lucide-react";
+import AudioRecorder from "@/components/AudioRecorder";
 
 export default function RolePlay() {
   const { skill } = useParams<{ skill: string }>();
@@ -20,6 +21,20 @@ export default function RolePlay() {
   const [isPlaying, setIsPlaying] = useState(false);
   const [hasPlayedAudio, setHasPlayedAudio] = useState(false);
   const audioRef = useRef<HTMLAudioElement>(null);
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [voiceAnalysis, setVoiceAnalysis] = useState<Record<string, any>>({});
+
+  const analyzeVoice = trpc.voice.transcribeAndAnalyze.useMutation({
+    onSuccess: (data, variables) => {
+      setVoiceAnalysis(prev => ({ ...prev, [variables.question]: data }));
+      setIsAnalyzing(false);
+      toast.success("Voice analysis complete!");
+    },
+    onError: () => {
+      setIsAnalyzing(false);
+      toast.error("Failed to analyze voice");
+    }
+  });
 
   const rolePlay = ROLE_PLAYS.find(rp => rp.skill === skill);
 
@@ -67,9 +82,21 @@ export default function RolePlay() {
   };
 
   const handleNext = () => {
-    if (!answers[currentQ.id]) {
+    // For record type, check if voice analysis is complete
+    if (currentQ.type === "record" && !voiceAnalysis[currentQ.question]) {
+      toast.error("Please record and analyze your answer first");
+      return;
+    }
+    
+    // For other types, check if answer exists
+    if (currentQ.type !== "record" && !answers[currentQ.id]) {
       toast.error("Please answer the question");
       return;
+    }
+    
+    // Store voice analysis as answer for record type
+    if (currentQ.type === "record" && voiceAnalysis[currentQ.question]) {
+      setAnswers(prev => ({ ...prev, [currentQ.id]: voiceAnalysis[currentQ.question].transcript }));
     }
 
     if (currentQuestion < rolePlay.questions.length - 1) {
@@ -186,17 +213,68 @@ export default function RolePlay() {
             )}
 
             {currentQ.type === "record" && (
-              <div className="space-y-2">
-                <Textarea
-                  placeholder="Type your answer here..."
-                  value={answers[currentQ.id] || ""}
-                  onChange={(e) => handleAnswer(e.target.value)}
-                  rows={5}
-                  className="resize-none"
-                />
-                <p className="text-xs text-muted-foreground">
-                  Tip: Be specific and use examples from the scenario
+              <div className="space-y-4">
+                <p className="text-sm text-muted-foreground">
+                  🎤 Record your spoken answer. AI will transcribe and analyze your response.
                 </p>
+                <AudioRecorder
+                  disabled={isAnalyzing}
+                  onRecordingComplete={async (audioBlob) => {
+                    setIsAnalyzing(true);
+                    // Convert blob to base64
+                    const reader = new FileReader();
+                    reader.readAsDataURL(audioBlob);
+                    reader.onloadend = () => {
+                      const base64 = reader.result?.toString().split(',')[1] || '';
+                      analyzeVoice.mutate({
+                        audioBase64: base64,
+                        question: currentQ.question,
+                        context: rolePlay.context,
+                        groundTruth: rolePlay.groundTruth
+                      });
+                    };
+                  }}
+                />
+                {isAnalyzing && (
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary" />
+                    Analyzing your response...
+                  </div>
+                )}
+                {voiceAnalysis[currentQ.question] && (
+                  <Card className="bg-gradient-to-br from-green-50 to-blue-50 border-2 border-green-200">
+                    <CardContent className="pt-6 space-y-3">
+                      <div>
+                        <p className="text-sm font-semibold text-gray-700 mb-1">📝 Transcript:</p>
+                        <p className="text-sm text-gray-600 italic">"{voiceAnalysis[currentQ.question].transcript}"</p>
+                      </div>
+                      <div>
+                        <p className="text-sm font-semibold text-gray-700 mb-1">🎯 Score: {voiceAnalysis[currentQ.question].score}/100</p>
+                        <p className="text-sm text-gray-600">{voiceAnalysis[currentQ.question].feedback}</p>
+                      </div>
+                      {voiceAnalysis[currentQ.question].strengths?.length > 0 && (
+                        <div>
+                          <p className="text-sm font-semibold text-green-700 mb-1">✅ Strengths:</p>
+                          <ul className="text-sm text-gray-600 list-disc list-inside">
+                            {voiceAnalysis[currentQ.question].strengths.map((s: string, i: number) => (
+                              <li key={i}>{s}</li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
+                      {voiceAnalysis[currentQ.question].improvements?.length > 0 && (
+                        <div>
+                          <p className="text-sm font-semibold text-orange-700 mb-1">💡 Areas for Improvement:</p>
+                          <ul className="text-sm text-gray-600 list-disc list-inside">
+                            {voiceAnalysis[currentQ.question].improvements.map((i: string, idx: number) => (
+                              <li key={idx}>{i}</li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
+                    </CardContent>
+                  </Card>
+                )}
               </div>
             )}
 

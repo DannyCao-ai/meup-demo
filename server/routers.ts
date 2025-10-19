@@ -5,6 +5,8 @@ import { protectedProcedure, publicProcedure, router } from "./_core/trpc";
 import { z } from "zod";
 import * as db from "./db";
 import { invokeLLM } from "./_core/llm";
+import { transcribeAudio } from "./_core/voiceTranscription";
+import { storagePut } from "./storage";
 
 export const appRouter = router({
   system: systemRouter,
@@ -215,6 +217,79 @@ export const appRouter = router({
         }
         
         return { success: true };
+      }),
+  }),
+
+  voice: router({
+    transcribeAndAnalyze: protectedProcedure
+      .input(z.object({
+        audioBase64: z.string(),
+        question: z.string(),
+        context: z.string(),
+        groundTruth: z.string().optional(),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        // Convert base64 to buffer and upload to S3
+        const audioBuffer = Buffer.from(input.audioBase64, 'base64');
+        const fileName = `voice_${ctx.user.id}_${Date.now()}.webm`;
+        const { url: audioUrl } = await storagePut(
+          `voice-recordings/${fileName}`,
+          audioBuffer,
+          "audio/webm"
+        );
+        
+        // Transcribe audio
+        const transcription = await transcribeAudio({
+          audioUrl,
+          language: "en",
+          prompt: "Transcribe this answer to an active listening or memory exercise."
+        });
+        
+        if ('error' in transcription) {
+          throw new Error(`Transcription failed: ${transcription.error}`);
+        }
+        
+        const transcript = transcription.text;
+        
+        // Use LLM to analyze the answer
+        const response = await invokeLLM({
+          messages: [
+            {
+              role: "system",
+              content: "You are an expert evaluator for upskilling assessments. Evaluate the user's spoken answer based on the question, context, and ground truth. Provide a score from 0-100, detailed feedback, and specific strengths and areas for improvement."
+            },
+            {
+              role: "user",
+              content: `Question: ${input.question}\n\nContext: ${input.context}\n\n${input.groundTruth ? `Ground Truth: ${input.groundTruth}\n\n` : ""}User's Spoken Answer (Transcript): ${transcript}\n\nProvide evaluation in JSON format with score, feedback, strengths (array), and improvements (array).`
+            }
+          ],
+          response_format: {
+            type: "json_schema",
+            json_schema: {
+              name: "voice_evaluation",
+              strict: true,
+              schema: {
+                type: "object",
+                properties: {
+                  score: { type: "integer", description: "Score from 0 to 100" },
+                  feedback: { type: "string", description: "Detailed feedback on the answer" },
+                  strengths: { type: "array", items: { type: "string" }, description: "Specific strengths in the answer" },
+                  improvements: { type: "array", items: { type: "string" }, description: "Areas for improvement" }
+                },
+                required: ["score", "feedback", "strengths", "improvements"],
+                additionalProperties: false
+              }
+            }
+          }
+        });
+        
+        const content = response.choices[0].message.content;
+        const evaluation = JSON.parse(typeof content === 'string' ? content : "{}");
+        
+        return {
+          transcript,
+          ...evaluation
+        };
       }),
   }),
 
