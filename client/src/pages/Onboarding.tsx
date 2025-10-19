@@ -39,6 +39,14 @@ export default function Onboarding() {
     }));
   };
 
+  // Handle Enter key press
+  const handleKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      handleNext();
+    }
+  };
+
   const handleNext = () => {
     if (step === 1 && !formData.userName) {
       toast.error("Please enter your name");
@@ -85,6 +93,8 @@ export default function Onboarding() {
                 placeholder="Enter your name"
                 value={formData.userName}
                 onChange={(e) => setFormData(prev => ({ ...prev, userName: e.target.value }))}
+                onKeyPress={handleKeyPress}
+                autoFocus
               />
             </div>
           )}
