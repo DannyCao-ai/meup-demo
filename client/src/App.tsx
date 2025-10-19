@@ -18,7 +18,7 @@ function Router() {
       <Route path={"/onboarding"} component={Onboarding} />
       <Route path={"/roleplay/:skill"} component={RolePlay} />
       <Route path={"/results/:skill"} component={Results} />
-      <Route path={"/learning-path/:skill"} component={LearningPath} />
+      <Route path={"/learning-path"} component={LearningPath} />
       <Route path={"/lesson/:skill/:lessonId"} component={Lesson} />
       <Route path={"/404"} component={NotFound} />
       <Route component={NotFound} />

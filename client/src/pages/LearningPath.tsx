@@ -1,4 +1,5 @@
 import { useLocation, useParams } from "wouter";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -7,14 +8,17 @@ import { SKILLS } from "@shared/content";
 import { CheckCircle2, Circle, Lock, ArrowRight } from "lucide-react";
 
 export default function LearningPath() {
-  const { skill } = useParams<{ skill: string }>();
   const [, setLocation] = useLocation();
+  const [showRolePlay, setShowRolePlay] = useState(false);
 
+  const { data: onboardingData } = trpc.onboarding.get.useQuery();
   const { data: progressData, isLoading } = trpc.progress.get.useQuery({
-    skill: skill || ""
+    skill: onboardingData?.selectedSkill || ""
+  }, {
+    enabled: !!onboardingData?.selectedSkill
   });
 
-  const skillData = SKILLS.find(s => s.name === skill);
+  const skillData = SKILLS.find(s => s.name === onboardingData?.selectedSkill);
 
   if (isLoading) {
     return (
@@ -81,6 +85,28 @@ export default function LearningPath() {
           </div>
         </div>
 
+        {/* Introduction Card with Role-Play Assessment */}
+        <Card className="mb-6 animate-fade-in bg-gradient-to-r from-blue-50 to-purple-50 border-2 border-blue-200">
+          <CardContent className="p-6">
+            <div className="flex items-start gap-4">
+              <img src="/assets/images/mascot_cat.png" alt="Mascot" className="w-20 h-20" />
+              <div className="flex-1">
+                <h2 className="text-2xl font-bold mb-2">Welcome, {onboardingData?.userName}! 🎉</h2>
+                <p className="text-muted-foreground mb-4">
+                  I've created a personalized learning path for you based on your goals. Before we start, let's assess your current skills through an interactive role-play scenario. This will help me customize your learning journey!
+                </p>
+                <Button 
+                  size="lg" 
+                  onClick={() => setLocation(`/roleplay/${onboardingData?.selectedSkill}`)}
+                  className="bg-blue-600 hover:bg-blue-700"
+                >
+                  Start Role-Play Assessment <ArrowRight className="ml-2 w-5 h-5" />
+                </Button>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
         <div className="space-y-6">
           {skillData.lessons.map((lesson, lessonIdx) => (
             <Card key={lesson.id} className="animate-fade-in">
@@ -105,7 +131,7 @@ export default function LearningPath() {
                       <Card 
                         key={keypoint.id} 
                         className={`border-2 transition-all hover:shadow-md cursor-pointer ${getStatusColor(status)}`}
-                        onClick={() => setLocation(`/lesson/${skill}/${lesson.id}?keypoint=${keypoint.id}`)}
+                        onClick={() => setLocation(`/lesson/${onboardingData?.selectedSkill}/${lesson.id}?keypoint=${keypoint.id}`)}
                       >
                         <CardContent className="p-4">
                           <div className="flex items-start gap-3">

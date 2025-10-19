@@ -17,7 +17,7 @@ export default function Results() {
 
   const updateProgress = trpc.progress.updateFromAssessment.useMutation({
     onSuccess: () => {
-      setLocation(`/learning-path/${skill}`);
+      setLocation(`/learning-path`);
     }
   });
 

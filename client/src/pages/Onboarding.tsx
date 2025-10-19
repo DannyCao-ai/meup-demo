@@ -22,8 +22,8 @@ export default function Onboarding() {
 
   const saveOnboarding = trpc.onboarding.save.useMutation({
     onSuccess: () => {
-      toast.success("Profile saved!");
-      setLocation(`/roleplay/${formData.selectedSkill}`);
+      toast.success("Profile saved! Generating your personalized learning path...");
+      setLocation(`/learning-path`);
     },
     onError: () => {
       toast.error("Failed to save profile.");
