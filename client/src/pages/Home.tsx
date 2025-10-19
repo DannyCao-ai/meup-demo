@@ -1,27 +1,44 @@
 import { useAuth } from "@/_core/hooks/useAuth";
 import { Button } from "@/components/ui/button";
-import { APP_LOGO, APP_TITLE, getLoginUrl } from "@/const";
+import { getLoginUrl } from "@/const";
+import { useLocation } from "wouter";
 
-/**
- * All content in this page are only for example, delete if unneeded
- * When building pages, remember your instructions in Frontend Workflow, Frontend Best Practices, Design Guide and Common Pitfalls
- */
 export default function Home() {
-  // The userAuth hooks provides authentication state
-  // To implement login/logout functionality, simply call logout() or redirect to getLoginUrl()
-  let { user, loading, error, isAuthenticated, logout } = useAuth();
+  const { user, isAuthenticated } = useAuth();
+  const [, setLocation] = useLocation();
 
-  // If theme is switchable in App.tsx, we can implement theme toggling like this:
-  // const { theme, toggleTheme } = useTheme();
-
-  // Use APP_LOGO (as image src) and APP_TITLE if needed
+  const handleStart = () => {
+    if (isAuthenticated) {
+      setLocation("/onboarding");
+    } else {
+      window.location.href = getLoginUrl();
+    }
+  };
 
   return (
-    <div className="min-h-screen flex flex-col">
-      <main>
-        Example Page
-        <Button variant="default">Example Button</Button>
-      </main>
+    <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-blue-50 to-purple-50">
+      <div className="container max-w-4xl text-center px-4 animate-fade-in">
+        <img 
+          src="/assets/images/mascot_cat.png" 
+          alt="MeUp Mascot" 
+          className="w-32 h-32 mx-auto mb-8 animate-pulse-soft"
+        />
+        <h1 className="text-5xl font-bold mb-6 text-gray-900">
+          Welcome to <span className="text-primary">MeUp</span>
+        </h1>
+        <p className="text-xl text-gray-700 mb-8 max-w-2xl mx-auto">
+          Discover your personalized learning path with AI-powered assessments. 
+          Master skills like Active Listening and Memory through interactive role-play scenarios.
+        </p>
+        <Button 
+          onClick={handleStart}
+          size="lg"
+          className="text-lg px-8 py-6"
+        >
+          Start Your Learning Journey
+        </Button>
+      </div>
     </div>
   );
 }
+

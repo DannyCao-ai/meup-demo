@@ -1,11 +1,21 @@
-import { eq } from "drizzle-orm";
+import { eq, and } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
-import { InsertUser, users } from "../drizzle/schema";
+import { 
+  InsertUser, 
+  users, 
+  userOnboarding, 
+  InsertUserOnboarding,
+  assessments,
+  InsertAssessment,
+  learningProgress,
+  InsertLearningProgress,
+  exerciseAttempts,
+  InsertExerciseAttempt
+} from "../drizzle/schema";
 import { ENV } from './_core/env';
 
 let _db: ReturnType<typeof drizzle> | null = null;
 
-// Lazily create the drizzle instance so local tooling can run without a DB.
 export async function getDb() {
   if (!_db && process.env.DATABASE_URL) {
     try {
@@ -81,8 +91,141 @@ export async function getUser(id: string) {
   }
 
   const result = await db.select().from(users).where(eq(users.id, id)).limit(1);
-
   return result.length > 0 ? result[0] : undefined;
 }
 
-// TODO: add feature queries here as your schema grows.
+// Onboarding
+export async function saveOnboarding(data: InsertUserOnboarding) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  
+  const result = await db.insert(userOnboarding).values(data);
+  return result;
+}
+
+export async function getUserOnboarding(userId: string) {
+  const db = await getDb();
+  if (!db) return undefined;
+  
+  const result = await db.select().from(userOnboarding).where(eq(userOnboarding.userId, userId)).limit(1);
+  return result.length > 0 ? result[0] : undefined;
+}
+
+// Assessments
+export async function saveAssessment(data: InsertAssessment) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  
+  const result = await db.insert(assessments).values(data);
+  return result;
+}
+
+export async function getUserAssessments(userId: string, skill?: string) {
+  const db = await getDb();
+  if (!db) return [];
+  
+  const conditions = skill 
+    ? and(eq(assessments.userId, userId), eq(assessments.skill, skill))
+    : eq(assessments.userId, userId);
+  
+  const result = await db.select().from(assessments).where(conditions);
+  return result;
+}
+
+export async function getLatestAssessment(userId: string, skill: string, assessmentType: string) {
+  const db = await getDb();
+  if (!db) return undefined;
+  
+  const result = await db.select()
+    .from(assessments)
+    .where(
+      and(
+        eq(assessments.userId, userId),
+        eq(assessments.skill, skill),
+        eq(assessments.assessmentType, assessmentType)
+      )
+    )
+    .orderBy(assessments.createdAt)
+    .limit(1);
+  
+  return result.length > 0 ? result[0] : undefined;
+}
+
+// Learning Progress
+export async function saveLearningProgress(data: InsertLearningProgress) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  
+  // Check if exists
+  const existing = await db.select()
+    .from(learningProgress)
+    .where(
+      and(
+        eq(learningProgress.userId, data.userId),
+        eq(learningProgress.skill, data.skill),
+        eq(learningProgress.keypointId, data.keypointId)
+      )
+    )
+    .limit(1);
+  
+  if (existing.length > 0) {
+    // Update
+    await db.update(learningProgress)
+      .set({
+        status: data.status,
+        score: data.score,
+        completed: data.completed,
+        lastAttemptAt: data.lastAttemptAt,
+        updatedAt: new Date()
+      })
+      .where(eq(learningProgress.id, existing[0].id));
+    return existing[0];
+  } else {
+    // Insert
+    const result = await db.insert(learningProgress).values(data);
+    return result;
+  }
+}
+
+export async function getUserLearningProgress(userId: string, skill: string) {
+  const db = await getDb();
+  if (!db) return [];
+  
+  const result = await db.select()
+    .from(learningProgress)
+    .where(
+      and(
+        eq(learningProgress.userId, userId),
+        eq(learningProgress.skill, skill)
+      )
+    );
+  
+  return result;
+}
+
+// Exercise Attempts
+export async function saveExerciseAttempt(data: InsertExerciseAttempt) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  
+  const result = await db.insert(exerciseAttempts).values(data);
+  return result;
+}
+
+export async function getExerciseAttempts(userId: string, exerciseId: string) {
+  const db = await getDb();
+  if (!db) return [];
+  
+  const result = await db.select()
+    .from(exerciseAttempts)
+    .where(
+      and(
+        eq(exerciseAttempts.userId, userId),
+        eq(exerciseAttempts.exerciseId, exerciseId)
+      )
+    )
+    .orderBy(exerciseAttempts.createdAt);
+  
+  return result;
+}
+
