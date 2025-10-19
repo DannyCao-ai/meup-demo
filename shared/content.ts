@@ -85,8 +85,15 @@ export interface RolePlay {
   characterImage?: string;
 }
 
-// Active Listening Content
-export const ACTIVE_LISTENING_LESSONS: Lesson[] = [
+// Import comprehensive content
+import { ACTIVE_LISTENING_LESSONS } from './active_listening_content';
+import { MEMORY_LESSONS } from './memory_content';
+
+// Re-export for use in app
+export { ACTIVE_LISTENING_LESSONS, MEMORY_LESSONS };
+
+// Legacy content structure (will be replaced by imports above)
+const LEGACY_ACTIVE_LISTENING_LESSONS: Lesson[] = [
   {
     id: "al_lesson_1",
     title: "Introduction to Active Listening",
@@ -232,8 +239,8 @@ export const ACTIVE_LISTENING_LESSONS: Lesson[] = [
   }
 ];
 
-// Memory Content
-export const MEMORY_LESSONS: Lesson[] = [
+// Memory Content (moved to memory_content.ts)
+const LEGACY_MEMORY_LESSONS: Lesson[] = [
   {
     id: "mem_lesson_1",
     title: "How Memory Works",
