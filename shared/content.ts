@@ -54,16 +54,25 @@ export interface RolePlayQuestion {
   points: number;
 }
 
+export interface ConversationTurn {
+  speaker: string;
+  audioUrl: string;
+  characterImage: string;
+  text: string;
+}
+
 export interface RolePlay {
   id: string;
   skill: string;
   title: string;
   context: string;
-  audioUrl: string;
-  characterImage: string;
+  conversationTurns?: ConversationTurn[]; // New format
   groundTruth: string;
   distortedVersion?: string;
   questions: RolePlayQuestion[];
+  // Legacy support
+  audioUrl?: string;
+  characterImage?: string;
 }
 
 // Active Listening Content
@@ -277,11 +286,40 @@ export const ROLE_PLAYS: RolePlay[] = [
     id: "rp_al_entrance",
     skill: "Active Listening",
     title: "Client Meeting Debrief",
-    context: "You're a team member attending a debrief after your leader met with a client. The leader is summarizing what the client said, but you notice some key details might be missing or distorted.",
-    audioUrl: "/assets/audio/active_listening_client.wav",
-    characterImage: "/assets/images/client_male.png",
+    context: "You're a team member attending a debrief after your leader met with a client. The leader is summarizing what the client said, but you notice some key details might be missing or distorted. Listen carefully to the conversation and answer questions as they come up.",
+    conversationTurns: [
+      {
+        speaker: "Leader",
+        audioUrl: "/assets/audio/conversations/al_turn1_leader.wav",
+        characterImage: "/assets/images/leader_male.png",
+        text: "So I just got back from the client meeting. The client said they're happy with the progress overall. They just want us to make the interface colors a bit brighter, you know, more vibrant. Oh, and they mentioned something about a chart, but I think it's just a nice-to-have. I told them we'll have a demo ready by the end of the month, and whoever's available can handle their emails."
+      },
+      {
+        speaker: "You (Team Member)",
+        audioUrl: "/assets/audio/conversations/al_turn2_team.wav",
+        characterImage: "/assets/images/team_member_female.png",
+        text: "Wait, just to clarify - when you say brighter colors, did the client specifically mention they only want color changes? Or were they talking about the overall interface design and user experience?"
+      },
+      {
+        speaker: "Leader",
+        audioUrl: "/assets/audio/conversations/al_turn3_leader.wav",
+        characterImage: "/assets/images/leader_male.png",
+        text: "Well, they did mention the interface, but mostly about colors. They also brought up that regional comparison chart again - I think this is the third time they've asked for it. They seemed pretty insistent about it being important for their executives' decision-making."
+      },
+      {
+        speaker: "You (Team Member)",
+        audioUrl: "/assets/audio/conversations/al_turn4_team.wav",
+        characterImage: "/assets/images/team_member_female.png",
+        text: "Got it. And you mentioned a demo by end of month - did they ask for any other specific commitments? Like a point of contact or timeline guarantees?"
+      },
+      {
+        speaker: "Leader",
+        audioUrl: "/assets/audio/conversations/al_turn5_leader.wav",
+        characterImage: "/assets/images/leader_male.png",
+        text: "Oh yeah, now that you mention it - they did ask for a concrete demo date, a fixed point of contact for all communications, and they were pretty firm about not wanting any more delays. They seemed frustrated about the back-and-forth."
+      }
+    ],
     groundTruth: "The client emphasized three critical points: 1) The interface changes are only cosmetic (colors), not the layout/UX they expected. 2) They've requested a regional comparison chart multiple times (at least 3 times) and it's still missing. 3) They need concrete commitments: a demo date, a fixed point of contact, and assurance that delays won't happen again.",
-    distortedVersion: "The leader says: 'The client just wants brighter colors. They mentioned some chart but it's probably not important. I promised a demo by end of month, and whoever's free can reply to emails.'",
     questions: [
       {
         id: "rp_al_q1",

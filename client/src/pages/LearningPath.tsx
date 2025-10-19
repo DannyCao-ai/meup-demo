@@ -5,7 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { trpc } from "@/lib/trpc";
 import { SKILLS } from "@shared/content";
-import { CheckCircle2, Circle, Lock, ArrowRight } from "lucide-react";
+import { CheckCircle2, Circle, Lock, ArrowRight, AlertCircle, BookOpen, Info } from "lucide-react";
 
 export default function LearningPath() {
   const [, setLocation] = useLocation();
@@ -55,9 +55,22 @@ export default function LearningPath() {
   };
 
   const getStatusIcon = (status: string, completed: boolean) => {
-    if (completed) return <CheckCircle2 className="w-5 h-5 text-green-600" />;
-    if (status === "optional") return <Circle className="w-5 h-5 text-gray-400" />;
-    return <Circle className="w-5 h-5 text-orange-600" />;
+    if (completed) return <CheckCircle2 className="w-6 h-6 text-green-600" />;
+    switch (status) {
+      case "optional": return <Info className="w-6 h-6 text-gray-500" />;
+      case "recommended": return <BookOpen className="w-6 h-6 text-blue-600" />;
+      case "required": return <AlertCircle className="w-6 h-6 text-orange-600" />;
+      default: return <Circle className="w-6 h-6 text-gray-400" />;
+    }
+  };
+
+  const getStatusLabel = (status: string) => {
+    switch (status) {
+      case "optional": return "Optional";
+      case "recommended": return "Recommended";
+      case "required": return "Required";
+      default: return "Not Started";
+    }
   };
 
   return (
@@ -141,14 +154,18 @@ export default function LearningPath() {
                               <p className="text-sm text-muted-foreground mb-2">
                                 {keypoint.description}
                               </p>
-                              <div className="flex items-center justify-between">
+                              <div className="flex items-center justify-between gap-2">
                                 <Badge variant="outline" className="text-xs">
                                   {keypoint.exercises.length} exercises
                                 </Badge>
                                 {completed ? (
-                                  <span className="text-xs text-green-600 font-medium">Completed</span>
+                                  <span className="text-xs text-green-600 font-medium flex items-center gap-1">
+                                    <CheckCircle2 className="w-3 h-3" /> Completed
+                                  </span>
                                 ) : (
-                                  <ArrowRight className="w-4 h-4 text-muted-foreground" />
+                                  <Badge variant="outline" className={`text-xs ${getStatusColor(status)}`}>
+                                    {getStatusLabel(status)}
+                                  </Badge>
                                 )}
                               </div>
                             </div>

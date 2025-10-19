@@ -21,14 +21,14 @@ export default function Results() {
     }
   });
 
-  useEffect(() => {
+  const handleStartJourney = () => {
     if (assessment && assessment.scores) {
       updateProgress.mutate({
         skill: skill || "",
         scores: assessment.scores as Record<string, number>
       });
     }
-  }, [assessment]);
+  };
 
   if (isLoading) {
     return (
@@ -177,12 +177,16 @@ export default function Results() {
         </div>
 
         <div className="text-center animate-fade-in">
+          <p className="text-muted-foreground mb-4">
+            Review your results above, then start your personalized learning journey!
+          </p>
           <Button 
             size="lg" 
-            onClick={() => setLocation(`/learning-path/${skill}`)}
+            onClick={handleStartJourney}
             disabled={updateProgress.isPending}
+            className="px-8 py-6 text-lg"
           >
-            {updateProgress.isPending ? "Generating Your Path..." : "View Your Personalized Learning Path"}
+            {updateProgress.isPending ? "Generating Your Path..." : "🚀 Start Personalized Journey"}
           </Button>
         </div>
       </div>
