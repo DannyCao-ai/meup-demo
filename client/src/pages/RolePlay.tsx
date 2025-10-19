@@ -133,7 +133,7 @@ export default function RolePlay() {
           </p>
         </div>
 
-        {currentQuestion === 0 && !hasPlayedAudio && (
+        {currentQuestion === 0 && (
           <Card className="mb-6 animate-fade-in">
             <CardHeader>
               <CardTitle>Scenario Context</CardTitle>
@@ -147,18 +147,23 @@ export default function RolePlay() {
                   className="w-24 h-24 rounded-lg object-cover"
                 />
                 <div className="flex-1">
-                  <p className="text-sm text-muted-foreground mb-2">Listen to the audio carefully</p>
+                  <p className="text-sm text-muted-foreground mb-2">🎧 Listen to the audio carefully before answering</p>
                   <Button 
                     onClick={handlePlayPause}
                     variant="outline"
                     className="gap-2"
                   >
                     {isPlaying ? <PauseCircle className="w-5 h-5" /> : <PlayCircle className="w-5 h-5" />}
-                    {isPlaying ? "Pause" : "Play Audio"}
+                    {isPlaying ? "Pause Audio" : "Play Audio"}
                   </Button>
                 </div>
               </div>
               <audio ref={audioRef} src={rolePlay.audioUrl} />
+              {hasPlayedAudio && (
+                <div className="text-center pt-2">
+                  <p className="text-sm text-green-600 mb-2">✓ Audio played. You can replay it anytime or continue to questions.</p>
+                </div>
+              )}
             </CardContent>
           </Card>
         )}
