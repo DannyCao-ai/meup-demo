@@ -29,11 +29,21 @@ export interface Exercise {
   explanation?: string;
 }
 
+export interface TheoryCard {
+  id: string;
+  title: string;
+  content: string[]; // Array of bullet points/rules
+  image?: string;
+  tips?: string[];
+  example?: string;
+}
+
 export interface Keypoint {
   id: string;
   title: string;
   description?: string;
-  theory: string;
+  theory: string; // Legacy full theory text
+  theoryCards?: TheoryCard[]; // New: theory broken into cards
   exercises: Exercise[];
 }
 
@@ -85,6 +95,41 @@ export const ACTIVE_LISTENING_LESSONS: Lesson[] = [
         id: "al_kp_1_1",
         title: "What is Active Listening?",
         theory: "Active listening is a communication technique that requires the listener to fully concentrate, understand, respond, and remember what is being said. It goes beyond simply hearing words—it involves engaging with the speaker through verbal and non-verbal cues to ensure complete understanding.",
+        theoryCards: [
+          {
+            id: "al_tc_1_1_1",
+            title: "What is Active Listening?",
+            content: [
+              "👂 **Listen** - Fully concentrate on what is being said",
+              "🧠 **Understand** - Process the meaning and context",
+              "💬 **Respond** - Provide appropriate feedback",
+              "📝 **Remember** - Retain key information for later"
+            ],
+            image: "/assets/images/theory_active_listening_intro.png",
+            tips: [
+              "Maintain eye contact",
+              "Avoid interrupting",
+              "Put away distractions (phone, laptop)",
+              "Show engagement through body language"
+            ],
+            example: "When a client explains their concerns, don't just wait for your turn to speak. Focus on their words, ask clarifying questions, and summarize to confirm understanding."
+          },
+          {
+            id: "al_tc_1_1_2",
+            title: "Hearing vs. Active Listening",
+            content: [
+              "🔊 **Hearing** = Passive physical process (sound waves → ears)",
+              "✅ **Active Listening** = Intentional mental process (engagement + understanding)",
+              "⚠️ You can hear without listening",
+              "💡 Active listening requires conscious effort"
+            ],
+            tips: [
+              "Test yourself: Can you summarize what was just said?",
+              "Notice when your mind wanders - bring focus back",
+              "Ask yourself: What is the speaker really trying to communicate?"
+            ]
+          }
+        ],
         exercises: [
           {
             id: "al_ex_1_1_1",

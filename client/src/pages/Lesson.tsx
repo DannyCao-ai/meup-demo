@@ -12,7 +12,11 @@ import { Badge } from "@/components/ui/badge";
 import { trpc } from "@/lib/trpc";
 import { SKILLS } from "@shared/content";
 import { toast } from "sonner";
-import { CheckCircle2, XCircle, ArrowRight, BookOpen } from "lucide-react";
+import { CheckCircle2, XCircle, ArrowRight, BookOpen, Lightbulb, Target } from "lucide-react";
+
+type ContentItem = 
+  | { type: "theory"; data: any; index: number }
+  | { type: "exercise"; data: any; originalIndex: number; index: number };
 
 export default function Lesson() {
   const { skill, lessonId } = useParams<{ skill: string; lessonId: string }>();
@@ -20,14 +24,13 @@ export default function Lesson() {
   const searchParams = new URLSearchParams(window.location.search);
   const keypointId = searchParams.get("keypoint");
 
-  const [currentExerciseIdx, setCurrentExerciseIdx] = useState(0);
+  const [currentItemIdx, setCurrentItemIdx] = useState(0);
   const [userAnswer, setUserAnswer] = useState<any>(null);
   const [showResult, setShowResult] = useState(false);
   const [isCorrect, setIsCorrect] = useState(false);
   const [attemptCount, setAttemptCount] = useState(0);
   const [failedExercises, setFailedExercises] = useState<number[]>([]);
   const [completedExercises, setCompletedExercises] = useState<Set<number>>(new Set());
-  const [showTheory, setShowTheory] = useState(true);
 
   const skillData = SKILLS.find(s => s.name === skill);
   const lesson = skillData?.lessons.find(l => l.id === lessonId);
@@ -36,15 +39,35 @@ export default function Lesson() {
   const saveAttempt = trpc.exercise.saveAttempt.useMutation();
   const saveProgress = trpc.progress.save.useMutation();
 
-  const exercises = keypoint?.exercises || [];
-  const currentExercise = exercises[currentExerciseIdx];
-  const progress = ((completedExercises.size) / exercises.length) * 100;
+  // Build content flow: theory cards → exercises
+  const contentItems: ContentItem[] = [];
+  if (keypoint) {
+    // Add all theory cards first
+    if (keypoint.theoryCards && keypoint.theoryCards.length > 0) {
+      keypoint.theoryCards.forEach((card, idx) => {
+        contentItems.push({ type: "theory", data: card, index: idx });
+      });
+    }
+    // Then add exercises
+    keypoint.exercises.forEach((ex, idx) => {
+      contentItems.push({ type: "exercise", data: ex, originalIndex: idx, index: idx });
+    });
+  }
+
+  const currentItem = contentItems[currentItemIdx];
+  const totalTheoryCards = keypoint?.theoryCards?.length || 0;
+  const totalExercises = keypoint?.exercises?.length || 0;
+  const progress = totalTheoryCards > 0 
+    ? ((currentItemIdx + 1) / contentItems.length) * 100
+    : ((completedExercises.size) / totalExercises) * 100;
 
   useEffect(() => {
-    setUserAnswer(null);
-    setShowResult(false);
-    setAttemptCount(0);
-  }, [currentExerciseIdx]);
+    if (currentItem?.type === "exercise") {
+      setUserAnswer(null);
+      setShowResult(false);
+      setAttemptCount(0);
+    }
+  }, [currentItemIdx]);
 
   if (!keypoint || !lesson) {
     return (
@@ -55,7 +78,8 @@ export default function Lesson() {
   }
 
   const checkAnswer = () => {
-    if (!currentExercise) return;
+    if (!currentItem || currentItem.type !== "exercise") return;
+    const currentExercise = currentItem.data;
 
     let correct = false;
 
@@ -98,55 +122,174 @@ export default function Lesson() {
       attempt: attemptCount + 1,
       isCorrect: correct,
       userAnswer,
-      needsReview: !correct && attemptCount >= 1
     });
 
     if (correct) {
-      completedExercises.add(currentExerciseIdx);
-      setCompletedExercises(new Set(completedExercises));
-    } else if (attemptCount === 0) {
-      toast.error("Try again!");
+      setCompletedExercises(prev => new Set(Array.from(prev).concat(currentItem.originalIndex)));
+      toast.success("Correct! Well done! 🎉");
     } else {
-      if (!failedExercises.includes(currentExerciseIdx)) {
-        setFailedExercises([...failedExercises, currentExerciseIdx]);
+      if (attemptCount === 0) {
+        toast.error("Not quite right. Try again!");
+      } else {
+        toast.error("Incorrect. Let's move on and revisit this later.");
+        setFailedExercises(prev => [...prev, currentItem.originalIndex]);
       }
     }
   };
 
   const handleNext = () => {
-    if (isCorrect || attemptCount >= 1) {
-      if (currentExerciseIdx < exercises.length - 1) {
-        setCurrentExerciseIdx(currentExerciseIdx + 1);
+    if (currentItem?.type === "theory") {
+      // Move to next item
+      setCurrentItemIdx(currentItemIdx + 1);
+      return;
+    }
+
+    // Exercise logic
+    if (!showResult) {
+      toast.error("Please answer the question first");
+      return;
+    }
+
+    if (isCorrect) {
+      // Move to next
+      if (currentItemIdx < contentItems.length - 1) {
+        setCurrentItemIdx(currentItemIdx + 1);
       } else if (failedExercises.length > 0) {
-        const nextFailed = failedExercises[0];
-        setFailedExercises(failedExercises.slice(1));
-        setCurrentExerciseIdx(nextFailed);
-        toast.info("Review this question again!");
+        // Revisit failed exercises
+        toast.info("Let's revisit the questions you missed!");
+        const failedIdx = failedExercises[0];
+        setFailedExercises(prev => prev.slice(1));
+        setCurrentItemIdx(contentItems.findIndex(item => 
+          item.type === "exercise" && item.originalIndex === failedIdx
+        ));
       } else {
+        // Complete
         saveProgress.mutate({
-          skill: skill || "",
-          lessonId: lessonId || "",
-          keypointId: keypointId || "",
+          skill: skill!,
+          lessonId: lessonId!,
+          keypointId: keypoint.id,
           status: "completed",
-          score: (completedExercises.size / exercises.length) * 100,
+          score: (completedExercises.size / totalExercises) * 100,
           completed: true
         });
-        toast.success("Keypoint completed!");
-        setLocation(`/learning-path/${skill}`);
+        toast.success("Keypoint completed! 🎉");
+        setLocation(`/learning-path`);
       }
     } else {
-      checkAnswer();
+      // Wrong answer
+      if (attemptCount === 1) {
+        // First attempt failed, try again
+        setShowResult(false);
+        setUserAnswer(null);
+      } else {
+        // Second attempt failed, move on
+        if (currentItemIdx < contentItems.length - 1) {
+          setCurrentItemIdx(currentItemIdx + 1);
+        } else {
+          // Add to failed and revisit later
+          if (failedExercises.length > 0) {
+            toast.info("Let's revisit the questions you missed!");
+            const failedIdx = failedExercises[0];
+            setFailedExercises(prev => prev.slice(1));
+            setCurrentItemIdx(contentItems.findIndex(item => 
+              item.type === "exercise" && item.originalIndex === failedIdx
+            ));
+          } else {
+            saveProgress.mutate({
+              skill: skill!,
+              lessonId: lessonId!,
+              keypointId: keypoint.id,
+              status: "completed",
+              score: (completedExercises.size / totalExercises) * 100,
+              completed: true
+            });
+            toast.success("Keypoint completed!");
+            setLocation(`/learning-path`);
+          }
+        }
+      }
     }
   };
 
-  const renderExercise = () => {
-    if (!currentExercise) return null;
+  const renderTheoryCard = (card: any) => {
+    return (
+      <Card className="animate-fade-in border-2 border-blue-200 bg-gradient-to-br from-blue-50 to-purple-50">
+        <CardHeader>
+          <div className="flex items-center gap-2 mb-2">
+            <BookOpen className="w-6 h-6 text-blue-600" />
+            <Badge variant="outline" className="bg-blue-100 text-blue-800">Theory</Badge>
+          </div>
+          <CardTitle className="text-2xl">{card.title}</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-6">
+          {card.image && (
+            <img 
+              src={card.image} 
+              alt={card.title} 
+              className="w-full rounded-lg shadow-md"
+            />
+          )}
+          
+          <div className="space-y-3">
+            <h3 className="font-semibold text-lg flex items-center gap-2">
+              <Target className="w-5 h-5 text-purple-600" />
+              Key Principles
+            </h3>
+            <ul className="space-y-2">
+              {card.content.map((point: string, idx: number) => (
+                <li key={idx} className="flex items-start gap-2 text-sm">
+                  <span className="text-blue-600 mt-1">•</span>
+                  <span dangerouslySetInnerHTML={{ __html: point }} />
+                </li>
+              ))}
+            </ul>
+          </div>
 
-    switch (currentExercise.type) {
+          {card.tips && card.tips.length > 0 && (
+            <div className="space-y-3 p-4 bg-yellow-50 rounded-lg border-2 border-yellow-200">
+              <h3 className="font-semibold text-lg flex items-center gap-2">
+                <Lightbulb className="w-5 h-5 text-yellow-600" />
+                Pro Tips
+              </h3>
+              <ul className="space-y-2">
+                {card.tips.map((tip: string, idx: number) => (
+                  <li key={idx} className="flex items-start gap-2 text-sm">
+                    <span className="text-yellow-600">💡</span>
+                    <span>{tip}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+
+          {card.example && (
+            <div className="p-4 bg-green-50 rounded-lg border-2 border-green-200">
+              <h3 className="font-semibold mb-2 flex items-center gap-2">
+                <span className="text-green-600">✨</span>
+                Example
+              </h3>
+              <p className="text-sm italic">{card.example}</p>
+            </div>
+          )}
+
+          <Button onClick={handleNext} size="lg" className="w-full">
+            Continue to {currentItemIdx < contentItems.length - 1 && contentItems[currentItemIdx + 1].type === "theory" ? "Next Theory" : "Practice"}
+            <ArrowRight className="ml-2 w-5 h-5" />
+          </Button>
+        </CardContent>
+      </Card>
+    );
+  };
+
+  const renderExercise = (exercise: any) => {
+    switch (exercise.type) {
       case "single_choice":
         return (
-          <RadioGroup value={userAnswer || ""} onValueChange={setUserAnswer}>
-            {currentExercise.options?.map((option: string, idx: number) => (
+          <RadioGroup 
+            value={userAnswer || ""} 
+            onValueChange={setUserAnswer}
+          >
+            {exercise.options?.map((option: string, idx: number) => (
               <div key={idx} className="flex items-center space-x-2 p-3 rounded-lg hover:bg-muted transition-colors">
                 <RadioGroupItem value={option} id={`opt-${idx}`} disabled={showResult} />
                 <Label htmlFor={`opt-${idx}`} className="cursor-pointer flex-1">
@@ -160,7 +303,7 @@ export default function Lesson() {
       case "multiple_choice":
         return (
           <div className="space-y-2">
-            {currentExercise.options?.map((option: string, idx: number) => {
+            {exercise.options?.map((option: string, idx: number) => {
               const selected = userAnswer || [];
               return (
                 <div key={idx} className="flex items-center space-x-2 p-3 rounded-lg hover:bg-muted transition-colors">
@@ -204,7 +347,7 @@ export default function Lesson() {
               Click to arrange in the correct order
             </p>
             <div className="grid gap-2">
-              {currentExercise.options?.map((option: string, idx: number) => {
+              {exercise.options?.map((option: string, idx: number) => {
                 const selected = userAnswer || [];
                 const position = selected.indexOf(idx);
                 return (
@@ -248,35 +391,9 @@ export default function Lesson() {
         );
 
       default:
-        return <p>Exercise type not implemented</p>;
+        return <p>Exercise type not supported yet</p>;
     }
   };
-
-  if (showTheory && keypoint.theory) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-purple-50 p-4 py-8">
-        <div className="container max-w-4xl mx-auto">
-          <Card className="animate-fade-in">
-            <CardHeader>
-              <div className="flex items-center gap-3 mb-2">
-                <BookOpen className="w-6 h-6 text-primary" />
-                <CardTitle className="text-2xl">{keypoint.title}</CardTitle>
-              </div>
-              <CardDescription>{keypoint.description}</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="prose max-w-none">
-                <div dangerouslySetInnerHTML={{ __html: keypoint.theory.replace(/\n/g, '<br/>') }} />
-              </div>
-              <Button onClick={() => setShowTheory(false)} className="w-full" size="lg">
-                Start Exercises <ArrowRight className="ml-2 w-5 h-5" />
-              </Button>
-            </CardContent>
-          </Card>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-purple-50 p-4 py-8">
@@ -284,63 +401,63 @@ export default function Lesson() {
         <div className="mb-6 animate-fade-in">
           <div className="flex items-center justify-between mb-4">
             <div>
-              <h1 className="text-2xl font-bold">{keypoint.title}</h1>
-              <p className="text-sm text-muted-foreground">
-                Exercise {completedExercises.size + 1} of {exercises.length}
-              </p>
+              <h1 className="text-3xl font-bold">{keypoint.title}</h1>
+              <p className="text-muted-foreground">{lesson.title}</p>
             </div>
-            <Button variant="ghost" size="sm" onClick={() => setShowTheory(true)}>
-              <BookOpen className="w-4 h-4 mr-2" />
-              Review Theory
-            </Button>
+            <Badge variant="outline" className="text-lg px-4 py-2">
+              {currentItemIdx + 1} / {contentItems.length}
+            </Badge>
           </div>
           <Progress value={progress} className="h-2" />
         </div>
 
-        <Card className="animate-fade-in">
-          <CardHeader>
-            <div className="flex items-center justify-between">
-              <CardTitle className="text-xl">{currentExercise?.question}</CardTitle>
-              <Badge variant="outline">{currentExercise?.type.replace(/_/g, ' ')}</Badge>
-            </div>
-          </CardHeader>
-          <CardContent className="space-y-6">
-            {renderExercise()}
+        {currentItem?.type === "theory" && renderTheoryCard(currentItem.data)}
 
-            {showResult && (
-              <div className={`p-4 rounded-lg ${isCorrect ? 'bg-green-50 border-2 border-green-200' : 'bg-red-50 border-2 border-red-200'}`}>
-                <div className="flex items-center gap-2 mb-2">
-                  {isCorrect ? (
-                    <CheckCircle2 className="w-5 h-5 text-green-600" />
+        {currentItem?.type === "exercise" && (
+          <Card className="animate-fade-in">
+            <CardHeader>
+              <div className="flex items-center gap-2 mb-2">
+                <Badge variant="outline" className="bg-green-100 text-green-800">Practice</Badge>
+                {showResult && (
+                  isCorrect ? (
+                    <Badge variant="outline" className="bg-green-100 text-green-600 flex items-center gap-1">
+                      <CheckCircle2 className="w-4 h-4" /> Correct
+                    </Badge>
                   ) : (
-                    <XCircle className="w-5 h-5 text-red-600" />
-                  )}
-                  <span className={`font-semibold ${isCorrect ? 'text-green-800' : 'text-red-800'}`}>
-                    {isCorrect ? 'Correct!' : attemptCount === 1 ? 'Try again!' : 'Incorrect'}
-                  </span>
-                </div>
-                {currentExercise?.explanation && (
-                  <p className="text-sm text-muted-foreground">{currentExercise.explanation}</p>
+                    <Badge variant="outline" className="bg-red-100 text-red-600 flex items-center gap-1">
+                      <XCircle className="w-4 h-4" /> Incorrect
+                    </Badge>
+                  )
                 )}
               </div>
-            )}
+              <CardTitle className="text-xl">{currentItem.data.question}</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {renderExercise(currentItem.data)}
 
-            <div className="flex gap-4">
-              <Button 
-                onClick={handleNext} 
-                className="flex-1"
-                disabled={!userAnswer}
-              >
-                {showResult && (isCorrect || attemptCount >= 1) ? (
-                  <>Next <ArrowRight className="ml-2 w-4 h-4" /></>
+              {showResult && currentItem.data.explanation && (
+                <div className="p-4 bg-blue-50 rounded-lg border-2 border-blue-200">
+                  <p className="text-sm"><strong>Explanation:</strong> {currentItem.data.explanation}</p>
+                </div>
+              )}
+
+              <div className="flex gap-2 pt-4">
+                {!showResult ? (
+                  <Button onClick={checkAnswer} className="flex-1" size="lg">
+                    Check Answer
+                  </Button>
                 ) : (
-                  "Check Answer"
+                  <Button onClick={handleNext} className="flex-1" size="lg">
+                    {isCorrect ? "Next" : (attemptCount === 1 ? "Try Again" : "Continue")}
+                    <ArrowRight className="ml-2 w-5 h-5" />
+                  </Button>
                 )}
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
+              </div>
+            </CardContent>
+          </Card>
+        )}
       </div>
     </div>
   );
 }
+

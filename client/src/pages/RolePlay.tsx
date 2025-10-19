@@ -94,11 +94,6 @@ export default function RolePlay() {
   };
 
   const handleNextTurn = () => {
-    if (!hasPlayedCurrentTurn && hasConversationTurns) {
-      toast.error("Please listen to the audio first");
-      return;
-    }
-
     // Check if there are questions after this turn
     const questionsToAsk = questionAfterTurn[currentTurnIndex];
     if (questionsToAsk && questionsToAsk.length > 0) {
