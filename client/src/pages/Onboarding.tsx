@@ -74,7 +74,7 @@ export default function Onboarding() {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-purple-50 p-4">
-      <Card className="w-full max-w-2xl animate-fade-in">
+      <Card className="w-full max-w-2xl animate-fade-in" onKeyPress={handleKeyPress} tabIndex={0}>
         <CardHeader>
           <div className="flex items-center gap-4 mb-4">
             <img src="/assets/images/mascot_cat.png" alt="Mascot" className="w-16 h-16" />
@@ -84,7 +84,7 @@ export default function Onboarding() {
             </div>
           </div>
         </CardHeader>
-        <CardContent className="space-y-6">
+        <CardContent className="space-y-6" onKeyPress={handleKeyPress}>
           {step === 1 && (
             <div className="space-y-4">
               <Label htmlFor="name">What is your name?</Label>
