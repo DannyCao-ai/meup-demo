@@ -70,14 +70,15 @@ export default function RolePlay() {
   const hasConversationTurns = rolePlay.conversationTurns && rolePlay.conversationTurns.length > 0;
   
   // Question mapping for conversation format
-  // Turn 0 (Leader) → no question yet
-  // Turn 1 (You) → no question yet  
-  // Turn 2 (Leader) → Q1, Q2 (after this turn)
-  // Turn 3 (You) → no question yet
-  // Turn 4 (Leader) → Q3, Q4, Q5 (after this turn)
+  // Turn 0 (Client Original) → no question yet
+  // Turn 1 (Leader) → no question yet
+  // Turn 2 (You) → no question yet  
+  // Turn 3 (Leader) → Q1, Q2 (after this turn)
+  // Turn 4 (You) → no question yet
+  // Turn 5 (Leader) → Q3, Q4, Q5 (after this turn)
   const questionAfterTurn: Record<number, number[]> = {
-    2: [0, 1], // After turn 2 (3rd turn), ask Q1 and Q2
-    4: [2, 3, 4] // After turn 4 (5th turn), ask Q3, Q4, Q5
+    3: [0, 1], // After turn 3 (4th turn), ask Q1 and Q2
+    5: [2, 3, 4, 5] // After turn 5 (6th turn), ask Q3, Q4, Q5, Q6
   };
 
   const handlePlayPause = () => {

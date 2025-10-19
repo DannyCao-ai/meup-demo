@@ -289,6 +289,12 @@ export const ROLE_PLAYS: RolePlay[] = [
     context: "You're a team member attending a debrief after your leader met with a client. The leader is summarizing what the client said, but you notice some key details might be missing or distorted. Listen carefully to the conversation and answer questions as they come up.",
     conversationTurns: [
       {
+        speaker: "Client (Original Meeting)",
+        audioUrl: "/assets/audio/conversations/al_turn0_client_original.wav",
+        characterImage: "/assets/images/client_male.png",
+        text: "Look, I appreciate the effort your team has put in, but I need to be clear about our expectations. The interface changes you showed us - they're just cosmetic, just different colors. That's not what we asked for. We need real UX improvements, a complete redesign of the layout and user flow. And about that regional comparison chart - this is the third time I'm bringing this up. It's not a nice-to-have, it's critical for our executives to make informed decisions. We need it in the next release. Finally, I need concrete commitments from your side: a specific demo date, a single point of contact who will handle all our communications, and I need assurance that we won't face any more delays. We can't keep going back and forth like this."
+      },
+      {
         speaker: "Leader",
         audioUrl: "/assets/audio/conversations/al_turn1_leader.wav",
         characterImage: "/assets/images/leader_male.png",
