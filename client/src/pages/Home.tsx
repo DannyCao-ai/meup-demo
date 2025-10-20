@@ -8,11 +8,8 @@ export default function Home() {
   const [, setLocation] = useLocation();
 
   const handleStart = () => {
-    if (isAuthenticated) {
-      setLocation("/onboarding");
-    } else {
-      window.location.href = getLoginUrl();
-    }
+    // Skip authentication for demo
+    setLocation("/onboarding");
   };
 
   return (

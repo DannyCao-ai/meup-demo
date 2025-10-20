@@ -39,19 +39,38 @@ export default function Lesson() {
   const saveAttempt = trpc.exercise.saveAttempt.useMutation();
   const saveProgress = trpc.progress.save.useMutation();
 
-  // Build content flow: theory cards → exercises
+  // Build content flow: theory card → its exercises → next theory card → its exercises...
   const contentItems: ContentItem[] = [];
+  let exerciseCounter = 0;
   if (keypoint) {
-    // Add all theory cards first
     if (keypoint.theoryCards && keypoint.theoryCards.length > 0) {
-      keypoint.theoryCards.forEach((card, idx) => {
-        contentItems.push({ type: "theory", data: card, index: idx });
+      const allExercises = keypoint.exercises || [];
+      const numTheoryCards = keypoint.theoryCards.length;
+      const exercisesPerCard = Math.ceil(allExercises.length / numTheoryCards);
+      
+      keypoint.theoryCards.forEach((card, cardIdx) => {
+        // Add theory card
+        contentItems.push({ type: "theory", data: card, index: cardIdx });
+        
+        // Distribute exercises: assign exercises to this theory card
+        const startIdx = cardIdx * exercisesPerCard;
+        const endIdx = Math.min(startIdx + exercisesPerCard, allExercises.length);
+        const cardExercises = allExercises.slice(startIdx, endIdx);
+        
+        // Add exercises for this theory card
+        cardExercises.forEach((ex) => {
+          contentItems.push({ type: "exercise", data: ex, originalIndex: exerciseCounter, index: exerciseCounter });
+          exerciseCounter++;
+        });
       });
+    } else {
+      // Fallback: no theory cards, just show exercises
+      if (keypoint.exercises && keypoint.exercises.length > 0) {
+        keypoint.exercises.forEach((ex, idx) => {
+          contentItems.push({ type: "exercise", data: ex, originalIndex: idx, index: idx });
+        });
+      }
     }
-    // Then add exercises
-    keypoint.exercises.forEach((ex, idx) => {
-      contentItems.push({ type: "exercise", data: ex, originalIndex: idx, index: idx });
-    });
   }
 
   const currentItem = contentItems[currentItemIdx];

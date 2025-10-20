@@ -36,6 +36,7 @@ export interface TheoryCard {
   image?: string;
   tips?: string[];
   example?: string;
+  exercises?: Exercise[]; // Exercises immediately following this theory card
 }
 
 export interface Keypoint {
@@ -83,6 +84,77 @@ export interface RolePlay {
   // Legacy support
   audioUrl?: string;
   characterImage?: string;
+}
+
+// Scenario Branching Types
+export interface ScenarioChoice {
+  id: string;
+  text: string;
+  nextNodeId: string | null;
+  isCorrect: boolean;
+  skillsAssessed: string[];
+  feedback?: string;
+}
+
+export interface ScenarioNode {
+  id: string;
+  type: 'situation' | 'consequence' | 'end';
+  speaker?: string;
+  characterImage?: string;
+  audioUrl?: string;
+  text: string;
+  choices?: ScenarioChoice[];
+}
+
+export interface ScenarioAnalysis {
+  weakKeypoints: string[];
+  practiceExercises: Exercise[];
+}
+
+export interface ScenarioBranching {
+  id: string;
+  skill: string;
+  title: string;
+  description: string;
+  context: string;
+  startNodeId: string;
+  nodes: ScenarioNode[];
+  getAnalysis: (userChoices: string[]) => ScenarioAnalysis;
+}
+
+export interface ScenarioChoice {
+  id: string;
+  text: string;
+  nextNodeId: string | null; // null means end of scenario
+  isCorrect: boolean;
+  skillsAssessed: string[]; // Which keypoints this choice tests
+  feedback?: string;
+}
+
+export interface ScenarioNode {
+  id: string;
+  type: 'situation' | 'consequence' | 'end';
+  speaker?: string;
+  characterImage?: string;
+  audioUrl?: string;
+  text: string;
+  choices?: ScenarioChoice[];
+}
+
+export interface ScenarioAnalysis {
+  weakKeypoints: string[]; // IDs of keypoints user struggled with
+  practiceExercises: Exercise[]; // Additional exercises for weak areas
+}
+
+export interface ScenarioBranching {
+  id: string;
+  skill: string;
+  title: string;
+  description: string;
+  context: string;
+  startNodeId: string;
+  nodes: ScenarioNode[];
+  getAnalysis: (userChoices: string[]) => ScenarioAnalysis;
 }
 
 // Import comprehensive content

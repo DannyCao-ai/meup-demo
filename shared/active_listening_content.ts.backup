@@ -28,36 +28,7 @@ export const ACTIVE_LISTENING_LESSONS: Lesson[] = [
               "Lean slightly forward to show engagement",
               "Take brief notes on key points"
             ],
-            example: "During a client meeting, Sarah notices the client mentions budget concerns three times. Instead of just nodding, she jots it down and later addresses it specifically: 'I heard you mention budget as a key concern. Let's discuss how we can work within your constraints.'",
-            exercises: [
-              {
-                id: "al_ex_1_1_2",
-                type: "multiple_choice",
-                question: "Which of the following are pillars of active listening? (Select all that apply)",
-                options: [
-                  "Listen fully",
-                  "Interrupt to show engagement",
-                  "Understand the context",
-                  "Respond appropriately",
-                  "Remember key points"
-                ],
-                correctAnswer: ["Listen fully", "Understand the context", "Respond appropriately", "Remember key points"],
-                explanation: "The four pillars are: Listen, Understand, Respond, and Remember. Interrupting disrupts active listening."
-              },
-              {
-                id: "al_ex_1_1_5",
-                type: "arrange_sequence",
-                question: "Arrange these steps in the correct order for active listening:",
-                options: [
-                  "Fully concentrate on the speaker",
-                  "Process the meaning and emotions",
-                  "Provide appropriate feedback",
-                  "Remember key information"
-                ],
-                correctAnswer: [0, 1, 2, 3],
-                explanation: "The sequence follows the four pillars: Listen → Understand → Respond → Remember."
-              }
-            ]
+            example: "During a client meeting, Sarah notices the client mentions budget concerns three times. Instead of just nodding, she jots it down and later addresses it specifically: 'I heard you mention budget as a key concern. Let's discuss how we can work within your constraints.'"
           },
           {
             id: "al_tc_1_1_2",
@@ -74,43 +45,7 @@ export const ACTIVE_LISTENING_LESSONS: Lesson[] = [
               "Ask yourself: What emotion is behind these words?",
               "Practice with podcasts - pause and summarize every 5 minutes"
             ],
-            example: "In a team meeting, John hears his colleague talk about project delays but is mentally planning his afternoon. Later, he can't recall the specific issues mentioned. Active listening would mean John focuses, takes notes, and asks follow-up questions.",
-            exercises: [
-              {
-                id: "al_ex_1_1_1",
-                type: "single_choice",
-                question: "What is the main difference between hearing and active listening?",
-                options: [
-                  "Hearing requires concentration, active listening doesn't",
-                  "Active listening involves conscious engagement and understanding, hearing is just perceiving sound",
-                  "They are essentially the same thing",
-                  "Hearing is more important in professional settings"
-                ],
-                correctAnswer: "Active listening involves conscious engagement and understanding, hearing is just perceiving sound",
-                explanation: "Active listening is an intentional process requiring mental effort to understand and respond, while hearing is simply the physical act of perceiving sound waves."
-              },
-              {
-                id: "al_ex_1_1_3",
-                type: "text_gap_filling",
-                question: "Complete: Active listening requires _____ effort, while hearing is a _____ process.",
-                options: [],
-                correctAnswer: "conscious passive",
-                explanation: "Active listening is a conscious, intentional effort, whereas hearing happens passively and automatically."
-              },
-              {
-                id: "al_ex_1_1_4",
-                type: "single_choice",
-                question: "Your colleague is explaining a complex problem, but you're thinking about your presentation later. This is an example of:",
-                options: [
-                  "Active listening",
-                  "Hearing without listening",
-                  "Effective communication",
-                  "Multitasking"
-                ],
-                correctAnswer: "Hearing without listening",
-                explanation: "You're hearing the words but not actively processing them because your mind is elsewhere. This is passive hearing, not active listening."
-              }
-            ]
+            example: "In a team meeting, John hears his colleague talk about project delays but is mentally planning his afternoon. Later, he can't recall the specific issues mentioned. Active listening would mean John focuses, takes notes, and asks follow-up questions."
           },
           {
             id: "al_tc_1_1_3",
@@ -126,21 +61,6 @@ export const ACTIVE_LISTENING_LESSONS: Lesson[] = [
               "When you feel defensive, take a breath and refocus on their words",
               "Count to 3 after someone finishes before you respond",
               "Practice 'curious listening' - approach every conversation wanting to learn"
-            ],
-            exercises: [
-              {
-                id: "al_ex_1_1_6",
-                type: "single_choice",
-                question: "What is the primary goal of the listening mindset?",
-                options: [
-                  "To respond quickly and show you're smart",
-                  "To understand the speaker's perspective without judgment",
-                  "To evaluate whether the speaker is right or wrong",
-                  "To plan your counter-argument"
-                ],
-                correctAnswer: "To understand the speaker's perspective without judgment",
-                explanation: "The listening mindset focuses on understanding and empathy first, suspending judgment and the urge to respond immediately."
-              }
             ]
           },
           {
@@ -157,26 +77,72 @@ export const ACTIVE_LISTENING_LESSONS: Lesson[] = [
               "Choose quiet locations for critical discussions",
               "If distracted, acknowledge it: 'Can we continue this in 10 minutes? I want to give you my full attention'",
               "Practice mindfulness to improve focus"
-            ],
-            exercises: [
-              {
-                id: "al_ex_1_1_7",
-                type: "multiple_choice",
-                question: "Which of the following are common listening barriers? (Select all that apply)",
-                options: [
-                  "Phone notifications",
-                  "Taking notes",
-                  "Personal stress",
-                  "Planning your response while listening",
-                  "Asking clarifying questions"
-                ],
-                correctAnswer: ["Phone notifications", "Personal stress", "Planning your response while listening"],
-                explanation: "External distractions (phones), internal distractions (stress), and mental barriers (planning responses) all prevent active listening. Taking notes and asking questions actually support it."
-              }
             ]
           }
         ],
-        exercises: []
+        exercises: [
+          {
+            id: "al_ex_1_1_1",
+            type: "single_choice",
+            question: "What is the main difference between hearing and active listening?",
+            options: [
+              "Hearing requires concentration, active listening doesn't",
+              "Active listening involves conscious engagement and understanding, hearing is just perceiving sound",
+              "They are essentially the same thing",
+              "Hearing is more important in professional settings"
+            ],
+            correctAnswer: "Active listening involves conscious engagement and understanding, hearing is just perceiving sound",
+            explanation: "Active listening is an intentional process requiring mental effort to understand and respond, while hearing is simply the physical act of perceiving sound waves."
+          },
+          {
+            id: "al_ex_1_1_2",
+            type: "multiple_choice",
+            question: "Which of the following are pillars of active listening? (Select all that apply)",
+            options: [
+              "Listen fully",
+              "Interrupt to show engagement",
+              "Understand the context",
+              "Respond appropriately",
+              "Remember key points"
+            ],
+            correctAnswer: ["Listen fully", "Understand the context", "Respond appropriately", "Remember key points"],
+            explanation: "The four pillars are: Listen, Understand, Respond, and Remember. Interrupting disrupts active listening."
+          },
+          {
+            id: "al_ex_1_1_3",
+            type: "text_gap_filling",
+            question: "Complete: Active listening requires _____ effort, while hearing is a _____ process.",
+            options: [],
+            correctAnswer: "conscious passive",
+            explanation: "Active listening is a conscious, intentional effort, whereas hearing happens passively and automatically."
+          },
+          {
+            id: "al_ex_1_1_4",
+            type: "single_choice",
+            question: "Your colleague is explaining a complex problem, but you're thinking about your presentation later. This is an example of:",
+            options: [
+              "Active listening",
+              "Hearing without listening",
+              "Effective communication",
+              "Multitasking"
+            ],
+            correctAnswer: "Hearing without listening",
+            explanation: "You're hearing the words but not actively processing them because your mind is elsewhere. This is passive hearing, not active listening."
+          },
+          {
+            id: "al_ex_1_1_5",
+            type: "arrange_sequence",
+            question: "Arrange these steps in the correct order for active listening:",
+            options: [
+              "Fully concentrate on the speaker",
+              "Process the meaning and emotions",
+              "Provide appropriate feedback",
+              "Remember key information"
+            ],
+            correctAnswer: [0, 1, 2, 3],
+            explanation: "The sequence follows the four pillars: Listen → Understand → Respond → Remember."
+          }
+        ]
       },
       {
         id: "al_kp_1_2",
