@@ -1,7 +1,7 @@
 import { COOKIE_NAME } from "@shared/const";
 import { getSessionCookieOptions } from "./_core/cookies";
 import { systemRouter } from "./_core/systemRouter";
-import { protectedProcedure, publicProcedure, router } from "./_core/trpc";
+import { publicProcedure, router } from "./_core/trpc";
 import { z } from "zod";
 import * as db from "./db";
 import { invokeLLM } from "./_core/llm";
@@ -23,7 +23,7 @@ export const appRouter = router({
   }),
 
   onboarding: router({
-    save: protectedProcedure
+    save: publicProcedure
       .input(z.object({
         userName: z.string(),
         favoriteTopics: z.array(z.string()),
@@ -32,7 +32,7 @@ export const appRouter = router({
       }))
       .mutation(async ({ ctx, input }) => {
         await db.saveOnboarding({
-          userId: ctx.user.id,
+          userId: ctx.user!.id,
           userName: input.userName,
           favoriteTopics: input.favoriteTopics,
           selectedSkill: input.selectedSkill,
@@ -41,13 +41,13 @@ export const appRouter = router({
         return { success: true };
       }),
     
-    get: protectedProcedure.query(async ({ ctx }) => {
-      return await db.getUserOnboarding(ctx.user.id);
+    get: publicProcedure.query(async ({ ctx }) => {
+      return await db.getUserOnboarding(ctx.user!.id);
     }),
   }),
 
   assessment: router({
-    submit: protectedProcedure
+    submit: publicProcedure
       .input(z.object({
         skill: z.string(),
         assessmentType: z.string(),
@@ -90,7 +90,7 @@ export const appRouter = router({
         }
         
         await db.saveAssessment({
-          userId: ctx.user.id,
+          userId: ctx.user!.id,
           skill: input.skill,
           assessmentType: input.assessmentType,
           scores,
@@ -101,16 +101,16 @@ export const appRouter = router({
         return { scores, totalScore: avgScore };
       }),
     
-    getLatest: protectedProcedure
+    getLatest: publicProcedure
       .input(z.object({
         skill: z.string(),
         assessmentType: z.string(),
       }))
       .query(async ({ ctx, input }) => {
-        return await db.getLatestAssessment(ctx.user.id, input.skill, input.assessmentType);
+        return await db.getLatestAssessment(ctx.user!.id, input.skill, input.assessmentType);
       }),
     
-    evaluateOpenEnded: protectedProcedure
+    evaluateOpenEnded: publicProcedure
       .input(z.object({
         question: z.string(),
         userAnswer: z.string(),
@@ -154,7 +154,7 @@ export const appRouter = router({
   }),
 
   progress: router({
-    save: protectedProcedure
+    save: publicProcedure
       .input(z.object({
         skill: z.string(),
         lessonId: z.string(),
@@ -165,7 +165,7 @@ export const appRouter = router({
       }))
       .mutation(async ({ ctx, input }) => {
         await db.saveLearningProgress({
-          userId: ctx.user.id,
+          userId: ctx.user!.id,
           skill: input.skill,
           lessonId: input.lessonId,
           keypointId: input.keypointId,
@@ -177,15 +177,15 @@ export const appRouter = router({
         return { success: true };
       }),
     
-    get: protectedProcedure
+    get: publicProcedure
       .input(z.object({
         skill: z.string(),
       }))
       .query(async ({ ctx, input }) => {
-        return await db.getUserLearningProgress(ctx.user.id, input.skill);
+        return await db.getUserLearningProgress(ctx.user!.id, input.skill);
       }),
     
-    updateFromAssessment: protectedProcedure
+    updateFromAssessment: publicProcedure
       .input(z.object({
         skill: z.string(),
         scores: z.record(z.string(), z.number()),
@@ -206,7 +206,7 @@ export const appRouter = router({
           const keypointId = `${input.skill.toLowerCase().replace(/ /g, "_")}_kp_${dimension.toLowerCase().replace(/ /g, "_")}`;
           
           await db.saveLearningProgress({
-            userId: ctx.user.id,
+            userId: ctx.user!.id,
             skill: input.skill,
             lessonId: "auto_generated",
             keypointId,
@@ -221,7 +221,7 @@ export const appRouter = router({
   }),
 
   voice: router({
-    transcribeAndAnalyze: protectedProcedure
+    transcribeAndAnalyze: publicProcedure
       .input(z.object({
         audioBase64: z.string(),
         question: z.string(),
@@ -231,7 +231,7 @@ export const appRouter = router({
       .mutation(async ({ ctx, input }) => {
         // Convert base64 to buffer and upload to S3
         const audioBuffer = Buffer.from(input.audioBase64, 'base64');
-        const fileName = `voice_${ctx.user.id}_${Date.now()}.webm`;
+        const fileName = `voice_${ctx.user!.id}_${Date.now()}.webm`;
         const { url: audioUrl } = await storagePut(
           `voice-recordings/${fileName}`,
           audioBuffer,
@@ -294,7 +294,7 @@ export const appRouter = router({
   }),
 
   exercise: router({
-    saveAttempt: protectedProcedure
+    saveAttempt: publicProcedure
       .input(z.object({
         exerciseId: z.string(),
         attempt: z.number(),
@@ -304,7 +304,7 @@ export const appRouter = router({
       }))
       .mutation(async ({ ctx, input }) => {
         await db.saveExerciseAttempt({
-          userId: ctx.user.id,
+          userId: ctx.user!.id,
           exerciseId: input.exerciseId,
           attempt: input.attempt,
           isCorrect: input.isCorrect,
@@ -315,15 +315,15 @@ export const appRouter = router({
         return { success: true };
       }),
     
-    getAttempts: protectedProcedure
+    getAttempts: publicProcedure
       .input(z.object({
         exerciseId: z.string(),
       }))
       .query(async ({ ctx, input }) => {
-        return await db.getExerciseAttempts(ctx.user.id, input.exerciseId);
+        return await db.getExerciseAttempts(ctx.user!.id, input.exerciseId);
       }),
     
-    generateSimilar: protectedProcedure
+    generateSimilar: publicProcedure
       .input(z.object({
         originalQuestion: z.string(),
         exerciseType: z.string(),

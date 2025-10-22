@@ -99,8 +99,28 @@ export async function saveOnboarding(data: InsertUserOnboarding) {
   const db = await getDb();
   if (!db) throw new Error("Database not available");
   
-  const result = await db.insert(userOnboarding).values(data);
-  return result;
+  // Check if user already has onboarding data
+  const existing = await db.select()
+    .from(userOnboarding)
+    .where(eq(userOnboarding.userId, data.userId))
+    .limit(1);
+  
+  if (existing.length > 0) {
+    // Update existing record
+    await db.update(userOnboarding)
+      .set({
+        userName: data.userName,
+        favoriteTopics: data.favoriteTopics,
+        selectedSkill: data.selectedSkill,
+        learningTime: data.learningTime
+      })
+      .where(eq(userOnboarding.userId, data.userId));
+    return existing[0];
+  } else {
+    // Insert new record
+    const result = await db.insert(userOnboarding).values(data);
+    return result;
+  }
 }
 
 export async function getUserOnboarding(userId: string) {

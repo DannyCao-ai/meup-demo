@@ -5,7 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { trpc } from "@/lib/trpc";
 import { SKILLS } from "@shared/content";
-import { CheckCircle2, Circle, Lock, ArrowRight, AlertCircle, BookOpen, Info } from "lucide-react";
+import { CheckCircle2, Circle, Lock, ArrowRight, AlertCircle, BookOpen, Info, Sparkles } from "lucide-react";
 
 export default function LearningPath() {
   const [, setLocation] = useLocation();
@@ -179,6 +179,44 @@ export default function LearningPath() {
             </Card>
           ))}
         </div>
+
+        {/* Scenario Branching Section */}
+        <Card className="mt-8 animate-fade-in bg-gradient-to-r from-purple-50 to-pink-50 border-2 border-purple-200">
+          <CardContent className="p-6">
+            <div className="flex items-start gap-4">
+              <div className="bg-purple-100 p-3 rounded-full">
+                <Sparkles className="w-8 h-8 text-purple-600" />
+              </div>
+              <div className="flex-1">
+                <h2 className="text-2xl font-bold mb-2 flex items-center gap-2">
+                  Practice Scenario: Real-World Application
+                  <Badge className="bg-purple-600">Interactive</Badge>
+                </h2>
+                <p className="text-muted-foreground mb-4">
+                  Ready to test your knowledge? Navigate through a realistic workplace scenario where your choices matter. This interactive role-play will test all the keypoints you've learned and provide personalized feedback on your decision-making.
+                </p>
+                <div className="flex gap-3 mb-4">
+                  <Badge variant="outline" className="bg-white">
+                    🎭 Branching Story
+                  </Badge>
+                  <Badge variant="outline" className="bg-white">
+                    🎯 Knowledge Testing
+                  </Badge>
+                  <Badge variant="outline" className="bg-white">
+                    📊 Performance Analysis
+                  </Badge>
+                </div>
+                <Button 
+                  size="lg" 
+                  onClick={() => setLocation(`/scenario/${onboardingData?.selectedSkill}`)}
+                  className="bg-purple-600 hover:bg-purple-700"
+                >
+                  Start Practice Scenario <ArrowRight className="ml-2 w-5 h-5" />
+                </Button>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
       </div>
     </div>
   );

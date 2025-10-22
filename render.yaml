@@ -1,0 +1,10 @@
+services:
+  - type: web
+    name: meup-demo
+    env: node
+    buildCommand: pnpm install && pnpm build
+    startCommand: pnpm start
+    envVars:
+      - key: NODE_VERSION
+        value: 22.13.0
+

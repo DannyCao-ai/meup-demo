@@ -10,6 +10,7 @@ import RolePlay from "./pages/RolePlay";
 import Results from "./pages/Results";
 import LearningPath from "./pages/LearningPath";
 import Lesson from "./pages/Lesson";
+import ScenarioBranching from "./pages/ScenarioBranching";
 
 function Router() {
   return (
@@ -20,6 +21,7 @@ function Router() {
       <Route path={"/results/:skill"} component={Results} />
       <Route path={"/learning-path"} component={LearningPath} />
       <Route path={"/lesson/:skill/:lessonId"} component={Lesson} />
+      <Route path={"/scenario/:skill"} component={ScenarioBranching} />
       <Route path={"/404"} component={NotFound} />
       <Route component={NotFound} />
     </Switch>
